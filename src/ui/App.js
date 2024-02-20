@@ -8,60 +8,66 @@ import { useState, useCallback } from "react";
    Better yet, let's change it to a different "Play Again" button that
    resets everything and plays another hand (with a new Deck).
 **/
-export default function App({ initialCards }) {
+export default function App({ initialCards, deckId }) {
   const [cards, setCards] = useState(initialCards);
   const [selected, setSelected] = useState([]);
+  const [isPlayAgain, setIsPlayAgain] = useState(false);
 
   function toggleSelected(index) {
-    if (!selected.includes(index)) {
+    if (!selected.includes(index) && selected.length < 3 ) {
       setSelected(selected.concat([index]));
-    } else {
+    }
+    else if (!selected.includes(index) && selected.length == 3){
+      // If there's an Ace, user can select 4 cards
+      if(cards[index].rank === 'A' && cards[index].suit === 'S'){
+	  console.log('Ace is included');
+	  setSelected(selected.concat([index]));
+      }
+      else if(selected.some(index=>cards[index].rank === 'A' && cards[index].suit === 'S')){
+	  console.log('Ace is included');
+	  setSelected(selected.concat([index]));
+      }
+    }
+    else {
       setSelected(selected.filter((elt) => elt !== index));
     }
   }
 
-  // This function will be called when the Draw button is clicked
-  const fetchNewCards = useCallback(async () => {
-    console.log(`need to fetch ${selected.length} cards`);
+// This function will be called when the Draw button is clicked
+const fetchNewCards = useCallback(async () => {
+  console.log(`need to fetch ${selected.length} cards`);
 
-    // fetch the new cards
-    const fetchedCards = await Promise.all(
-      /**
-         This is some wacky functional programming magic. It's bad
-         code, but you should practice understanding it.  Essentially,
-         we're creating a new array of the appropriate length, then
-         mapping over it to create an array of Promises, which we then
-         await.
+  // fetch the new cards
+  const fetchedCards_obj = await Api.dealV2(deckId, selected.length);
+  const fetchedCards = fetchedCards_obj.cards;
 
-         Once API v2 is created, we can delete this and change it to a
-         much simpler single API call that specifies the number of
-         cards we want dealt.
-       **/
-      Array.from(Array(selected.length).keys()).map((arg, index) => {
-        return Api.deal();
-      }),
-    );
+  // let's print out the fetched cards
+  console.log(fetchedCards);
 
-    // let's print out the fetched cards
-    console.log(fetchedCards);
+  // create the new hand with the fetched cards replacing the
+  // selected cards
+  let fetchedCardsIndex = 0;
+  const newCards = cards.map((card, index) => {
+    if (selected.includes(index)) {
+      // we map this card to the new card, and increment
+      // our fetchedCardsIndex counter
+      return fetchedCards[fetchedCardsIndex++];
+    } else {
+      return card;
+    }
+  });
 
-    // create the new hand with the fetched cards replacing the
-    // selected cards
-    let fetchedCardsIndex = 0;
-    const newCards = cards.map((card, index) => {
-      if (selected.includes(index)) {
-        // we map this card to the new card, and increment
-        // our fetchedCardsIndex counter
-        return fetchedCards[fetchedCardsIndex++];
-      } else {
-        return card;
-      }
-    });
+  // update state, causing a re-render
+  setCards(newCards);
+  setSelected([]);
 
-    // update state, causing a re-render
-    setCards(newCards);
-    setSelected([]);
-  }, [selected, cards]);
+  // after draw, game over
+  setIsPlayAgain(true);
+}, [selected, cards, deckId]);
+
+  function playAgain(){
+      window.location.reload();
+  }
 
   return (
     <div>
@@ -69,7 +75,7 @@ export default function App({ initialCards }) {
         cards={cards}
         selected={selected}
         onSelect={(index) => toggleSelected(index)}
-      />
+      />  
       <button onClick={async () => fetchNewCards(selected)}>Draw</button>
     </div>
   );
