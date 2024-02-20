@@ -12,6 +12,8 @@ class Deck:
         random.shuffle(self.cards)
 
     def deal(self, num_cards):
+        if num_cards > len(self.cards):
+            return []  # or handle the case as needed
         dealt_cards = self.cards[:num_cards]
         self.cards = self.cards[num_cards:]
         return dealt_cards
