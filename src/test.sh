@@ -6,19 +6,17 @@ set -e
 # "set -x" makes the script print out each command before printing the output
 set -x
 
-# The `-w "\n"' argument adds a new line to the end of curl's output
-curl -w "\n" localhost:8000/api/v1/deal
-curl -w "\n" -X POST localhost:8000/api/v2/deck/new
-curl -w "\n" localhost:8000/api/v2/deck/123
-curl -w "\n" -X POST localhost:8000/api/v2/deck/123/deal?count=4
+# Create a new deck and store the deck ID
+# The `-s` option makes curl silent about its status output when piping
+DECK_ID1=$(curl -s -X POST localhost:8000/api/v2/deck/new | awk -F'"' '/deck_id/{print $4}') #this was taken from chatGPT, for formatting I could not use jq
 
-# You may want to parse the resulting JSON. The `jq` command is good
-# for that. You can install it with `apt` in Linux or homebrew in
-# Mac. I've commented out the following lines in case you don't have
-# it installed.
+echo "New deck ID: $DECK_ID1"
 
-# The `-s` option makes curl silence it's status output when piping
-# The `-r` option to jq makes it return a string without quotes
-curl -s -w "\n" -X POST localhost:8000/api/v2/deck/new | jq -r .message
+# Using the stored DECK_ID to request 5 cards from the new deck
+curl -w "\n" -X POST "localhost:8000/api/v2/deck/$DECK_ID1/deal?count=5"
 
+DECK_ID2=$(curl -s -X POST localhost:8000/api/v2/deck/new | awk -F'"' '/deck_id/{print $4}')
 
+echo "New deck ID: $DECK_ID2"
+
+curl -w "\n" -X POST "localhost:8000/api/v2/deck/$DECK_ID2/deal?count=5"
