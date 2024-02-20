@@ -11,18 +11,38 @@ import { useState, useCallback } from "react";
 export default function App({ initialCards }) {
   const [cards, setCards] = useState(initialCards);
   const [selected, setSelected] = useState([]);
+  const [includeAce, setIncludeAce] = useState(false);
+  const [isPlayAgain, setIsPlayAgain] = useState(false);
 
-  function toggleSelected(index) {
-    if (!selected.includes(index)) {
+function toggleSelected(index) {
+    if (!selected.includes(index) && selected.length < 3 ) {
       setSelected(selected.concat([index]));
-    } else {
+    }
+    else if (!selected.includes(index) && selected.length == 3){
+      if(cards[index].rank === 'A' && cards[index].suit === 'S'){
+	  // If there's an Ace, user can select - cards
+	  console.log('Ace is included');
+	  setSelected(selected.concat([index]));
+	  setIncludeAce(true);
+      }
+      else if(selected.some(index=>cards[index].rank === 'A' && cards[index].suit === 'S')){
+	  console.log('Ace is included');
+	  setSelected(selected.concat([index]));
+	  setIncludeAce(true);	  
+      }
+    }
+    else {
       setSelected(selected.filter((elt) => elt !== index));
     }
   }
 
   // This function will be called when the Draw button is clicked
   const fetchNewCards = useCallback(async () => {
-    console.log(`need to fetch ${selected.length} cards`);
+      console.log(`need to fetch ${selected.length} cards`);
+      if(includeAce == true){
+	  console.log('play again');
+	  setIsPlayAgain(true);
+      }
 
     // fetch the new cards
     const fetchedCards = await Promise.all(
@@ -63,13 +83,14 @@ export default function App({ initialCards }) {
     setSelected([]);
   }, [selected, cards]);
 
+
   return (
     <div>
       <Hand
         cards={cards}
         selected={selected}
         onSelect={(index) => toggleSelected(index)}
-      />
+      />  
       <button onClick={async () => fetchNewCards(selected)}>Draw</button>
     </div>
   );
