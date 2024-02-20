@@ -5,33 +5,17 @@ export default class Api {
     return card;
   }
 
-  static async deck(id) {
-    // while testing things out, you can override response to be whatever you want
-    if (typeof id === "undefined") {
-      // here we assume we want to create a new deck
+  static async getId(){
       const resp = await fetch("/api/v2/deck/new", { method: "POST" });
       const response = await resp.json();
-      return response;
-    } else if (typeof id === "string") {
-      // the default method for fetch is GET
-      const resp = await fetch(`/api/v2/deck/${id}`);
-      const response = await resp.json();
-      return response;
-    }
-
-    throw new Error(`expected string, received ${typeof id}`);
+      return response;    
   }
 
   static async dealV2(id, count) {
-    // while testing things out, you can override response to be whatever you want
-
-    if (typeof id !== "string" || typeof count !== "number") {
-      throw new Error(
-        "dealV2 requires a deck id and a number representing how many cards should be dealt",
-      );
-    }
-    const resp = await fetch(`/api/v2/deck/${id}/deal`, { method: "POST" });
-    const response = await resp.json();
-    return response;
+      // while testing things out, you can override response to be whatever you want
+      const resp = await fetch(`/api/v2/deck/${id}/deal?count=${count}`, { method: "POST" });
+      const response = await resp.json();
+      return response;
   }
+
 }
