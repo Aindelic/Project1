@@ -3,8 +3,8 @@ import random
 import uuid
 
 class Deck:
-    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-    values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
+    suits = ['H', 'D', 'C', 'S']
+    values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
     def __init__(self):
         self.id = str(uuid.uuid4())
@@ -13,7 +13,7 @@ class Deck:
 
     def deal(self, num_cards):
         if num_cards > len(self.cards):
-            return []  # or handle the case as needed
+            return []  #chatGPT - asked for help, was stuck on a type error, gave me this option.  
         dealt_cards = self.cards[:num_cards]
         self.cards = self.cards[num_cards:]
         return dealt_cards
